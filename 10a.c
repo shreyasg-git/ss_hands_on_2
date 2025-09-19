@@ -4,7 +4,7 @@ Name : 10a.c
 Author : Shreyas Gangurde
 Description : 10. Write a separate program using sigaction system call to catch the following signals.
                   a. SIGSEGV
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 

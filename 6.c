@@ -3,7 +3,7 @@
 Name : 6.c
 Author : Shreyas Gangurde
 Description : 6. Write a simple program to create three threads.
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 

@@ -4,7 +4,7 @@ Name : 8e.c
 Author : Shreyas Gangurde
 Description : 8. Write a separate program using signal system call to catch the following signals.
                   e. SIGALRM (use setitimer system call)
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 

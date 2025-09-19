@@ -3,7 +3,7 @@
 Name : 7.c
 Author : Shreyas Gangurde
 Description : 7. Write a simple program to print the created thread ids..
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 

@@ -4,7 +4,7 @@ Name : 8d.c
 Author : Shreyas Gangurde
 Description : 8. Write a separate program using signal system call to catch the following signals.
                   d. SIGALRM (use alarm system call)
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 

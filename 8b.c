@@ -4,7 +4,7 @@ Name : 8b.c
 Author : Shreyas Gangurde
 Description : 8. Write a separate program using signal system call to catch the following signals.
                   b. SIGINT
-Date: 12th September 2025
+Date: 20th September 2025
 ============================================================================
 */
 
