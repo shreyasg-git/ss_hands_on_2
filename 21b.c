@@ -1,47 +1,93 @@
+/*
+============================================================================
+Name : 21a.c
+Author : Shreyas Balasaheb Gangurde
+Description :21. Write two programs so that both can communicate by FIFO -Use two way communications.
+Date: 23rd September 2025
+============================================================================
+*/
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
+#define FIFO1 "myfifo1"
+#define FIFO2 "myfifo2"
+#define MAX_BUFFER_SIZE 1024
+
 int main() {
-  int fd_write, fd_read;
-  char *sendfifo = "/tmp/fifo2"; // B writes to fifo2
-  char *recfifo = "/tmp/fifo1";  // B reads from fifo1
+  int fd_read, fd_write;
+  char buffer[MAX_BUFFER_SIZE];
+  fd_set read_fds;
+  int max_fd;
 
-  // Create FIFOs if not already there
-  mkfifo(sendfifo, 0666);
-  mkfifo(recfifo, 0666);
+  printf("Process Two is starting...\n");
 
-  char buf[80];
+  // this will block until Process One opens it for writing.
+  fd_read = open(FIFO1, O_RDONLY);
 
-  printf("Program B starting...\n");
-  fflush(stdout);
+  // this will block until Process One opens it for reading.
+  fd_write = open(FIFO2, O_WRONLY);
 
-  // Open with O_RDWR to avoid blocking
-  fd_write = open(sendfifo, O_RDWR);
-  fd_read = open(recfifo, O_RDWR);
-
-  if (fd_write < 0 || fd_read < 0) {
-    perror("open");
-    exit(1);
-  }
-
-  printf("Program B connected.\n");
-  fflush(stdout);
+  printf("Connection established. You can start chatting.\nType 'exit' to terminate.\n\n");
 
   while (1) {
-    // Read from A
-    if (read(fd_read, buf, sizeof(buf)) > 0) {
-      printf("[Program A] :: %s", buf);
-      fflush(stdout);
+    // Clear the descriptor set and add stdin and the read FIFO
+    FD_ZERO(&read_fds);
+    FD_SET(STDIN_FILENO, &read_fds);
+    FD_SET(fd_read, &read_fds);
+
+    // Find the highest file descriptor number for the select() call
+    max_fd = (STDIN_FILENO > fd_read) ? STDIN_FILENO : fd_read;
+
+    // Wait for an activity on one of the file descriptors
+    select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+
+    // check outgoing
+    if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+      if (fgets(buffer, MAX_BUFFER_SIZE, stdin) == NULL) {
+        // Handle EOF (Ctrl+D) as an exit signal
+        printf("Input closed. Sending exit signal.\n");
+        strcpy(buffer, "exit\n");
+      }
+
+      // Write the user's message to the other process
+      write(fd_write, buffer, strlen(buffer) + 1);
+
+      // If the user typed "exit", break the loop
+      if (strncmp(buffer, "exit", 4) == 0) {
+        printf("Exiting...\n");
+        break;
+      }
     }
 
-    // Write to A
-    if (fgets(buf, sizeof(buf), stdin) != NULL) {
-      write(fd_write, buf, strlen(buf) + 1);
+    // --- Check for incoming data from the other process ---
+    if (FD_ISSET(fd_read, &read_fds)) {
+
+      ssize_t bytes_read = read(fd_read, buffer, MAX_BUFFER_SIZE);
+
+      if (bytes_read <= 0) {
+        printf("Process One has disconnected. Exiting.\n");
+        break;
+      }
+
+      buffer[bytes_read] = '\0';
+      printf("\rProcess One: %s", buffer);
+      fflush(stdout);
+
+      if (strncmp(buffer, "exit", 4) == 0) {
+        printf("\rProcess One terminated. Exiting.\n");
+        break;
+      }
     }
   }
+
+  close(fd_read);
+  close(fd_write);
+
+  return 0;
 }
