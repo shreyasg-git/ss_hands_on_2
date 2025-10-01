@@ -14,32 +14,55 @@ Date: 23rd September 2025
 #include <unistd.h>
 
 int main() {
-  int fd[2];
-  pid_t pid;
+    int fd[2];
+    pid_t pid1, pid2;
 
-  pipe(fd);
+    if (pipe(fd) == -1) {
+        perror("pipe failed");
+        exit(1);
+    }
 
-  pid = fork();
+    pid1 = fork();
+    if (pid1 == -1) {
+        perror("fork failed");
+        exit(1);
+    }
 
-  if (pid == 0) {
+    if (pid1 == 0) {
+        close(fd[0]);
+        close(STDOUT_FILENO);
+        dup(fd[1]);
+        close(fd[1]);
+
+        execlp("ls", "ls", "-l", NULL);
+        perror("execlp ls failed");
+        exit(1);
+    }
+
+    pid2 = fork();
+    if (pid2 == -1) {
+        perror("fork failed");
+        exit(1);
+    }
+
+    if (pid2 == 0) {
+        close(fd[1]);
+        close(STDIN_FILENO);
+        dup(fd[0]);
+        close(fd[0]);
+
+        execlp("wc", "wc", NULL);
+        perror("execlp wc failed");
+        exit(1);
+    }
+
     close(fd[0]);
-    dup2(fd[1], STDOUT_FILENO);
     close(fd[1]);
 
-    execlp("ls", "ls", "-l", NULL);
-    perror("execlp ls");
-    exit(1);
-  } else {
-    close(fd[1]);
-    dup2(fd[0], STDIN_FILENO);
-    close(fd[0]);
+    waitpid(pid1, NULL, 0);
+    waitpid(pid2, NULL, 0);
 
-    execlp("wc", "wc", NULL);
-    perror("execlp wc");
-    exit(1);
-  }
-
-  return 0;
+    return 0;
 }
 
 /* OUTPUT
