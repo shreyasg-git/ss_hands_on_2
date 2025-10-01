@@ -1,6 +1,6 @@
 /*
 ============================================================================
-Name : 19b.c
+Name : 19a.c
 Author : Shreyas Gangurde
 Description : 19. Create a FIFO file by
                 a. mknod command
